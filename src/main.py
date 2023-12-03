@@ -29,6 +29,8 @@ async def loop():
         if supervisor:
             supervisor.send(f'\r\x1b[2KIntensity = {level:.1f}%')
 
+        print(f'\x1b[2KIntensity = {level:.1f}%', end='\r')
+
         await asyncio.sleep_ms(200)
 
 

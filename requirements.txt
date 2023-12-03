@@ -2,3 +2,4 @@ adafruit-ampy~=1.1.0
 opencv-python~=4.8.1.78
 python-minifier~=2.9.0
 esptool~=4.6.2
+micropython-esp32-stubs~=1.21.0
