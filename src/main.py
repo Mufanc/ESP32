@@ -1,44 +1,47 @@
-import asyncio
+from beep import Beeper
+from ir import Receiver
+from misc import debounce
+from musics import musics
 
-import configs
-import wlan
-from display import Screen
-from rain_detector import RainDetector
-from supervisor import Supervisor
+beep = Beeper(14)
 
-detector = RainDetector(34)
-screen = Screen(18, 23)
+lock = False
+playlist = []
+
+keys = [0x44, 0x0C, 0x18, 0x5E, 0x08, 0x1C, 0x5A, 0x42, 0x52, 0x4A]
 
 
-async def loop():
-    supervisor = Supervisor.create(configs.supervisor_ip, configs.supervisor_port)
+@debounce(200)
+def on_receive(code, _):
+    global lock
+    try:
+        index = keys.index(code[1])
+
+        if index == 0:
+            beep.stop()
+        else:
+            lock = True
+            playlist.append(index - 1)
+    except ValueError:
+        pass
+
+
+irr = Receiver(25, on_receive)
+irr.activate()
+
+
+def main():
+    global lock
 
     while True:
-        value = detector.read()
-        level = (1 - (value + 1) / 4096) * 100
+        while not lock:
+            pass
 
-        state = detector.parse_state(value)
+        lock = False
+        index = playlist.pop(0)
 
-        if state == detector.NO_RAIN:
-            screen.image('images/nahida_clip.bin')  # depends:images/nahida_clip.bin
-        elif state == detector.RAINING_SMALL:
-            screen.message("Raining\nBut not heavily")
-        else:
-            screen.message(f"Raining\nIntensity={level:.1f}%")
-
-        if supervisor:
-            supervisor.send(f'\r\x1b[2KIntensity = {level:.1f}%')
-
-        print(f'\x1b[2KIntensity = {level:.1f}%', end='\r')
-
-        await asyncio.sleep_ms(200)
-
-
-async def main():
-    await wlan.connect(configs.wlan_ssid, configs.wlan_password)
-    await loop()
+        beep.music(*musics[index])
 
 
 if __name__ == '__main__':
-    event_loop = asyncio.new_event_loop()
-    event_loop.run_until_complete(main())
+    main()

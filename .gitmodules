@@ -1,3 +1,0 @@
-[submodule "src/external/oled"]
-	path = src/external/oled
-	url = https://github.com/stlehmann/micropython-ssd1306

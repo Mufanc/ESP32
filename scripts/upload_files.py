@@ -44,10 +44,14 @@ def ensure_dir(file: str):
         filesystem.mkdir(current, exists_okay=True)
 
 
+def is_debug():
+    return os.environ.get('DEBUG', '')
+
+
 def upload(local: str, remote: str):
     mtime = int(path.getmtime(local) * 1000)
 
-    if filemap.get(local, 0) == mtime:
+    if filemap.get(local, 0) == mtime and not is_debug():
         print(f'{local} -> {remote} (skip)')
         return
 
@@ -55,7 +59,10 @@ def upload(local: str, remote: str):
 
     if local.endswith('.py'):
         with open(local, 'r') as fp:
-            content = minify(fp.read(), local).encode()
+            if is_debug():
+                content = fp.read().encode()
+            else:
+                content = minify(fp.read(), local).encode()
     else:
         with open(local, 'rb') as fp:
             content = fp.read()
