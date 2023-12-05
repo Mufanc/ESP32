@@ -19,7 +19,8 @@ def on_receive(code, _):
 
         if index == 0:
             beep.stop()
-        else:
+            print('stop.')
+        elif not beep.is_playing():
             lock = True
             playlist.append(index - 1)
     except ValueError:
@@ -40,7 +41,9 @@ def main():
         lock = False
         index = playlist.pop(0)
 
-        beep.music(*musics[index])
+        print(f'play: {index}')
+
+        beep.play(*musics[index])
 
 
 if __name__ == '__main__':
