@@ -14,8 +14,12 @@ class Beep(object):
     def __init__(self, pin: int, screen=None):
         self.pin = PWM(Pin(pin, Pin.OUT))
         self.stopped = True
-        self._mute(0)
         self.screen = screen
+
+        self.state = 0
+        self.states = ['/', '-', '\\', '|']
+
+        self._mute(0)
 
     def _note(self, freq, dur, skip):
         self.pin.freq(freq)
@@ -57,32 +61,37 @@ class Beep(object):
 
         return [self.FREQ_STEP ** (half_raise + full_raise + base[i]) * self.A for i in range(7)]
 
-    def _update_state(self, ch):
+    def _update_state(self, ch=None):
         if self.screen:
-            self.screen.char_at(ch, self.screen.char_width - 2, self.screen.char_height - 2)
+            if ch:
+                self.screen.char_at(ch, self.screen.char_width - 2, self.screen.char_height - 2)
+            else:
+                self.state = (self.state + 1) % 4
+                self.screen.char_at(self.states[self.state], self.screen.char_width - 2, self.screen.char_height - 2)
+
+            self.screen.show()
 
     def _init_timer(self):
+        self.screen.char_at('0', self.screen.char_width - 8, self.screen.char_height - 2)
         self.screen.char_at('0', self.screen.char_width - 7, self.screen.char_height - 2)
-        self.screen.char_at('0', self.screen.char_width - 6, self.screen.char_height - 2)
-        self.screen.char_at(':', self.screen.char_width - 5, self.screen.char_height - 2)
+        self.screen.char_at(':', self.screen.char_width - 6, self.screen.char_height - 2)
+        self.screen.char_at('0', self.screen.char_width - 5, self.screen.char_height - 2)
         self.screen.char_at('0', self.screen.char_width - 4, self.screen.char_height - 2)
-        self.screen.char_at('0', self.screen.char_width - 3, self.screen.char_height - 2)
 
     def _update_timer(self, seconds):
         s1 = seconds % 10
-        self.screen.char_at(str(s1), self.screen.char_width - 3, self.screen.char_height - 2)
 
-        if s1 != 0:
-            return
+        if s1 == 0:
+            s0 = seconds // 10
 
-        s0 = seconds // 10
-        self.screen.char_at(str(s0), self.screen.char_width - 4, self.screen.char_height - 2)
+            if s0 == 0:
+                m1 = seconds // 60
+                self.screen.char_at(str(m1), self.screen.char_width - 7, self.screen.char_height - 2)
 
-        if s0 != 0:
-            return
+            self.screen.char_at(str(s0), self.screen.char_width - 5, self.screen.char_height - 2)
 
-        m1 = seconds // 60
-        self.screen.char_at(str(m1), self.screen.char_width - 6, self.screen.char_height - 2)
+        self.screen.char_at(str(s1), self.screen.char_width - 4, self.screen.char_height - 2)
+        self._update_state()
 
     def play(self, sheet: str, bpm: int = 90, key: str = 'C', name: str = ''):
         self.screen.message(f'{name}\n1={key} {bpm}BPM')
@@ -104,8 +113,6 @@ class Beep(object):
         scheduler.call_later(refresh_timer, 1000, True)
 
         self.stopped = False
-
-        states = ['/', '-', '\\', '|']
 
         freqs = self._get_freqs(key)
 
@@ -141,13 +148,13 @@ class Beep(object):
                 elif ch == '0':
                     self._mute(qr * da)
 
-                    self._update_state(states[i % 4])
+                    self._update_state()
                 else:
                     self._note(int(freqs[int(ch) - 1] * fa), qr * da * daa, skip)
                     daa = 1
                     fa = 1
 
-                    self._update_state(states[i % 4])
+                    self._update_state()
 
                 if self.stopped:
                     break

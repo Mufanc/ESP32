@@ -14,7 +14,6 @@ class Screen(object):
 
     def clear(self):
         self.oled.fill(0)
-        self.oled.show()
 
     def char_at(self, ch: str, x: int, y: int):
         self.oled.fill_rect(
@@ -25,6 +24,8 @@ class Screen(object):
             0
         )
         self.oled.text(ch, x * self.char_size, y * self.char_size)
+
+    def show(self):
         self.oled.show()
 
     def message(self, string: str):
