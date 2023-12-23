@@ -16,7 +16,7 @@ from util.wlan import Network
 screen = Screen(18, 23)
 beep = Beep(14, screen)
 
-keys = [0x44, 0x0C, 0x18, 0x5E, 0x08, 0x1C, 0x5A, 0x42, 0x52, 0x4A]
+keys = [0x44, 0x0C, 0x18, 0x5E, 0x08, 0x1C, 0x5A, 0x42, 0x52, 0x4A] + [0x07]
 
 lock = ThreadSafeFlag()
 playlist = []
@@ -28,6 +28,10 @@ def on_receive(code, _):
         index = keys.index(code[1])
 
         if index == -1:
+            return
+
+        if index >= 9:  # 截屏
+            print(screen.dump())
             return
 
         if index == 0:

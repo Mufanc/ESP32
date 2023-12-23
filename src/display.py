@@ -1,4 +1,5 @@
 from machine import Pin, SoftI2C
+import re
 
 from external.oled.ssd1306 import SSD1306_I2C
 
@@ -66,3 +67,16 @@ class Screen(object):
                     y += 1
 
         self.oled.show()
+
+    def dump(self):
+        buffer: bytearray = self.oled.buffer
+
+        dump = ['']
+
+        for ch in buffer:
+            if len(dump[-1]) % 128 == 0:
+                dump.append('')
+
+            dump[-1] += f'{ch:0>2X}'
+
+        return '\n'.join(dump[1:])
