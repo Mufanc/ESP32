@@ -21,4 +21,5 @@ for i in range(0, len(data), 2):
         if ch & (1 << j):
             image[8 * (index // 128) + j, index % 128] = 255
 
+image = cv2.resize(image, np.array(image.shape[::-1]) * 4, interpolation=cv2.INTER_NEAREST)
 cv2.imwrite(argv[1], image)

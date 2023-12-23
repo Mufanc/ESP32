@@ -14,6 +14,7 @@ class Beep(object):
     def __init__(self, pin: int, screen=None):
         self.pin = PWM(Pin(pin, Pin.OUT))
         self.stopped = True
+        self.dump = False
         self.screen = screen
 
         self.state = 0
@@ -156,6 +157,10 @@ class Beep(object):
 
                     self._update_state()
 
+                if self.dump:
+                    self.dump = False
+                    print(self.screen.dump())
+
                 if self.stopped:
                     break
 
@@ -167,6 +172,10 @@ class Beep(object):
         self.stopped = True
         self.screen.clear()
         self._update_state('%')
+
+    def dump_and_stop(self):
+        self.dump = True
+        self.stopped = True
 
     def is_playing(self):
         return not self.stopped
