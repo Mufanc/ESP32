@@ -29,7 +29,10 @@ def save_filemap():
     if not path.exists('.cache'):
         os.mkdir('.cache')
 
-    json.dump(filemap, open(filemap_path, 'w'))
+    if is_debug():
+        os.remove(filemap_path)
+    else:
+        json.dump(filemap, open(filemap_path, 'w'))
 
 
 filemap = load_filemap()
