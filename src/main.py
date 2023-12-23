@@ -16,7 +16,7 @@ from util.wlan import Network
 screen = Screen(18, 23)
 beep = Beep(14, screen)
 
-keys = [0x44, 0x0C, 0x18, 0x5E, 0x08, 0x1C, 0x5A, 0x42, 0x52, 0x4A] + [0x07]
+keys = [0x44, 0x16, 0x0C, 0x18, 0x5E, 0x08, 0x1C, 0x5A, 0x42, 0x52, 0x4A] + [0x07]
 
 lock = ThreadSafeFlag()
 playlist = []
@@ -30,14 +30,14 @@ def on_receive(code, _):
         if index == -1:
             return
 
-        if index >= 9:  # 截屏
+        if index >= 10:  # 截屏
             beep.dump_and_stop()
             return
 
         if index == 0:
             beep.stop()
         elif not beep.is_playing():
-            playlist.append(index)
+            playlist.append(index - 1)
             lock.set()
     except ValueError:
         pass
@@ -47,9 +47,17 @@ irr = Receiver(25, on_receive)
 irr.activate()
 
 
-def on_music(req: HttpRequest):
-    music_info = json.loads(req.body)
+def play_music_json(music: str):
+    music_info = json.loads(music)
     beep.play(music_info['D'], music_info['V'], music_info['K'], music_info['T'])
+
+
+def on_request(req: HttpRequest):
+    play_music_json(req.body.decode())
+
+    with open('/saved_music', 'wb') as fp:
+        fp.write(req.body)
+
     return ''
 
 
@@ -58,7 +66,16 @@ async def player_main():
         await lock.wait()
         lock.clear()
         index = playlist.pop(0)
-        beep.play(*musics[index - 1])
+
+        if index == 0:
+            try:
+                with open('/saved_music', 'r') as fp:
+                    if music := fp.read():
+                        play_music_json(music)
+            except Exception as err:
+                print(err)
+        else:
+            beep.play(*musics[index - 1])
 
 
 async def main():
@@ -71,7 +88,7 @@ async def main():
 
     server = HttpServer()
     await server.bind(80)
-    await server.serve_forever(on_music)
+    await server.serve_forever(on_request)
 
 
 if __name__ == '__main__':
