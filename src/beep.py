@@ -20,7 +20,7 @@ class Beep(object):
         self.state = 0
         self.states = ['/', '-', '\\', '|']
 
-        self._mute(0)
+        self.stop()
 
     def _note(self, freq, dur, skip):
         self.pin.freq(freq)
@@ -170,12 +170,15 @@ class Beep(object):
 
     def stop(self):
         self.stopped = True
-        self.screen.clear()
-        self._update_state('%')
+        self.screen.image('images/nahida_clip.bin')  # depends:images/nahida_clip.bin
+        self._mute(0)
 
-    def dump_and_stop(self):
-        self.dump = True
-        self.stopped = True
+    def screencap(self):
+        if self.stopped:
+            print(self.screen.dump())
+        else:
+            self.dump = True
+            self.stopped = True
 
     def is_playing(self):
         return not self.stopped

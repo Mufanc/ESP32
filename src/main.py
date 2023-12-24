@@ -31,7 +31,7 @@ def on_receive(code, _):
             return
 
         if index >= 10:  # 截屏
-            beep.dump_and_stop()
+            beep.screencap()
             return
 
         if index == 0:
