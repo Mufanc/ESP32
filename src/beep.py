@@ -12,7 +12,7 @@ class Beep(object):
     FREQ_STEP = 2 ** (1 / 12)
 
     def __init__(self, pin: int, screen=None):
-        self.pin = PWM(Pin(pin, Pin.OUT))
+        self.pwm = PWM(Pin(pin, Pin.OUT))
         self.stopped = True
         self.dump = False
         self.screen = screen
@@ -23,26 +23,26 @@ class Beep(object):
         self.stop()
 
     def _note(self, freq, dur, skip):
-        self.pin.freq(freq)
+        self.pwm.freq(freq)
 
         if skip:
-            self.pin.duty(512)
+            self.pwm.duty(512)
             sleep_us(int(dur))
         else:
             r, n = 0.8, 10
 
-            self.pin.duty(512)
+            self.pwm.duty(512)
             sleep_us(int(dur * r))
 
             # for i in range(n):
             #     self.pin.duty(int(30 - 3 * i))
             #     sleep_us(int(dur * (1 - r) / n))
 
-            self.pin.duty(0)
+            self.pwm.duty(0)
             sleep_us(int(dur * (1 - r)))
 
     def _mute(self, dur):
-        self.pin.duty(0)
+        self.pwm.duty(0)
         sleep_us(int(dur))
 
     def _get_freqs(self, tonality: str):
@@ -165,7 +165,7 @@ class Beep(object):
                     break
 
         finally:
-            self.pin.duty(0)
+            self.pwm.duty(0)
             self.stop()
 
     def stop(self):
